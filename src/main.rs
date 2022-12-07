@@ -1,12 +1,17 @@
 use dotenv::dotenv;
 use std::env;
 
+use std::collections::HashMap;
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let credentials = get_credentials();
 
     // Obtain a link_token by calling /link/token/create.
-    get_link_token(&credentials);
+    match get_link_token(&credentials).await {
+        Ok(link) => println!("Worked! {:?}", link),
+        Err(error) => println!("Doh!"),
+    }
 
     // Get transactions from all accounts.
 
@@ -50,8 +55,13 @@ pub fn get_credentials() -> Credentials {
     }
 }
 
-pub fn get_link_token(credentials: &Credentials) {
-    println!("Getting link token using credentials {:?}", credentials);
+async fn get_link_token(credentials: &Credentials) -> Result<HashMap<String, String>, Box<dyn std::error::Error>> {
+    let resp = reqwest::get("https://httpbin.org/ip")
+        .await?
+        .json::<HashMap<String, String>>()
+        .await?;
+    
+    Ok(resp)
 }
 
 pub fn nudge_transaction(transactions: [Transaction; 2]) -> [Transaction; 2] {
