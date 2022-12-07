@@ -5,9 +5,28 @@ use std::env;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let credentials = get_credentials();
 
-    println!("{:?}", credentials);
-
     // Obtain a link_token by calling /link/token/create.
+    get_link_token(&credentials);
+
+    // Get transactions from all accounts.
+
+    let transactions: [Transaction; 2] = [{ Transaction {
+        transaction_date: String::from("December 7, 2022"),
+        amount: 32.51,
+        category: Category::Groceries,
+        vendor: String::from("Trader Joe's")
+    } }, { Transaction {
+        transaction_date: String::from("December 1, 2022"),
+        amount: 154.02,
+        category: Category:: Groceries,
+        vendor: String::from("Whole Foods")
+    } }];
+
+    // Nudge transactions close to the beginning/end of the month.
+    let transactions = nudge_transaction(transactions);
+
+    println!("Credentials: {:?}", credentials);
+    println!("Transactions: {:?}", transactions);
 
     Ok(())
 }
@@ -27,8 +46,20 @@ pub fn get_credentials() -> Credentials {
 
     match credentials {
         Ok(credentials) => credentials,
-        Err(VarError) => panic!("Missing credentials in the `.env` file.")
+        Err(var_error) => panic!("Missing credentials in the `.env` file.")
     }
+}
+
+pub fn get_link_token(credentials: &Credentials) {
+    println!("Getting link token using credentials {:?}", credentials);
+}
+
+pub fn nudge_transaction(transactions: [Transaction; 2]) -> [Transaction; 2] {
+    println!("Nudged!");
+
+    // Inspect transactions near the beginning or end of a month and nudge.
+    // Return the full transaction set.
+    transactions
 }
 
 // Types
@@ -37,4 +68,20 @@ pub struct Credentials {
     pub client_id: String,
     pub client_secret: String,
     pub environment: String
+}
+
+#[derive(Debug)]
+pub struct Transaction {
+    transaction_date: String,
+    amount: f32,
+    category: Category,
+    vendor: String
+}
+
+#[derive(Debug)]
+pub enum Category {
+    Groceries,
+    EatingOut,
+    Rent,
+    ChildCare
 }
