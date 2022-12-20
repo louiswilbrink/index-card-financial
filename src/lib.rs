@@ -55,12 +55,3 @@ pub async fn get_link_token(credentials: &Credentials) -> Result<HashMap<String,
     
     Ok(resp)
 }
-
-pub fn nudge_transaction(transactions: [Transaction; 2]) -> [Transaction; 2] {
-    println!("Nudged!");
-
-    // Inspect transactions near the beginning or end of a month and nudge.
-    // Return the full transaction set.
-    transactions
-}
-
