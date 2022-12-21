@@ -1,18 +1,22 @@
 use std::error::Error;
 
 use hypertx::Credentials;
+use hypertx::Configuration;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let credentials = hypertx::load_credentials();
+    let config = hypertx::load_configuration();
 
     // Obtain a link_token by calling /link/token/create.
-    match hypertx::get_link_token(&credentials).await {
+    match hypertx::get_link_token(&config.credentials).await {
         Ok(link) => println!("Worked! {:?}", link),
         Err(error) => println!("Doh!"),
     }
 
-    println!("Credentials: {:?}", credentials);
+    println!("Config: {:?}", config);
 
+    // Get public_token, exchange for access_token.
+    
+     
     Ok(())
 }

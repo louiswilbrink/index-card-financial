@@ -4,12 +4,21 @@ use std::env;
 use std::error::Error;
 use std::collections::HashMap;
 
+use env::var;
+use env::VarError;
+
 // Types
 #[derive(Debug)]
 pub struct Credentials {
     pub client_id: String,
-    pub client_secret: String,
-    pub environment: String
+    pub client_secret: String
+}
+
+#[derive(Debug)]
+pub struct Configuration {
+    pub credentials: Credentials,
+    pub environment: String,
+    pub environment_url: String
 }
 
 #[derive(Debug)]
@@ -28,22 +37,25 @@ pub enum Category {
     ChildCare
 }
 
-pub fn load_credentials() -> Credentials {
-    let credentials = read_credentials_from_env();
+pub fn load_configuration() -> Configuration {
+    let config = read_environment_variables();
 
-    match credentials {
-        Ok(credentials) => credentials,
-        Err(var_error) => panic!("Missing credentials in the `.env` file.")
+    match config {
+        Ok(config) => config,
+        Err(var_error) => panic!("Missing environment variables in the `.env` file.")
     }
 }
 
-fn read_credentials_from_env() -> Result<Credentials, env::VarError> {
+fn read_environment_variables() -> Result<Configuration, VarError> {
     dotenv().ok();
 
-    Ok(Credentials {
-        client_id: env::var("CLIENT_ID")?,
-        client_secret: env::var("CLIENT_SECRET")?,
-        environment: String::from("prod")
+    Ok(Configuration {
+        credentials: Credentials {
+            client_id: var("CLIENT_ID")?,
+            client_secret: var("CLIENT_SECRET")?
+        },
+        environment: var("ENV")?,
+        environment_url: var("ENV_URL")?
     })
 }
 
