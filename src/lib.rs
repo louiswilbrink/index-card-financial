@@ -82,17 +82,7 @@ async fn request_link_token(config: &Configuration) -> Result<LinkToken, reqwest
 
     let client = reqwest::Client::new();
 
-    let link_token_request_body = LinkTokenRequestBody {
-        client_id: &config.credentials.client_id,
-        secret: &config.credentials.client_secret,
-        client_name: String::from("Insert Client name here"),
-        country_codes: [String::from("US")],
-        language: String::from("en"),
-        user: LinkTokenUser {
-            client_user_id: String::from("unique_user_id")
-        },
-        products: [String::from("auth")]
-    };
+    let link_token_request_body = LinkTokenRequestBody::new(&config.credentials.client_id, &config.credentials.client_secret);
 
     let resp = client.post(url)
         .json(&link_token_request_body)
@@ -120,6 +110,22 @@ struct LinkTokenRequestBody<'a> {
     language: String,
     user: LinkTokenUser,
     products: [String; 1]
+}
+
+impl LinkTokenRequestBody<'_> {
+    fn new<'a>(client_id: &'a str, client_secret: &'a str) -> LinkTokenRequestBody<'a> {
+        LinkTokenRequestBody {
+            client_id: client_id,
+            secret: client_secret,
+            client_name: String::from("Insert Client name here"),
+            country_codes: [String::from("US")],
+            language: String::from("en"),
+            user: LinkTokenUser {
+                client_user_id: String::from("unique_user_id")
+            },
+            products: [String::from("auth")]
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
