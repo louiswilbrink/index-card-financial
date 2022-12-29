@@ -9,7 +9,5 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     println!("LinkToken: {:?}", link_token);
 
-    // Get public_token, exchange for access_token.
-    
     Ok(())
 }

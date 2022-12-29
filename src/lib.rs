@@ -6,9 +6,7 @@ use std::collections::HashMap;
 use env::var;
 use env::VarError;
 
-//use serde::ser::{Serialize, Serializer, SerializeStruct};
 use serde::{Serialize, Deserialize};
-
 
 #[derive(Debug)]
 pub struct Credentials {
@@ -46,6 +44,40 @@ pub enum Category {
     ChildCare
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+struct LinkTokenUser {
+    client_user_id: String
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct LinkTokenRequestBody<'a> {
+    client_id: &'a str,
+    secret: &'a str,
+    client_name: String,
+    country_codes: [String; 1],
+    language: String,
+    user: LinkTokenUser,
+    products: [String; 1]
+}
+
+impl LinkTokenRequestBody<'_> {
+    fn new<'a>(client_id: &'a str, client_secret: &'a str) -> LinkTokenRequestBody<'a> {
+        let user = LinkTokenUser {
+            client_user_id: String::from("unique_user_id")
+        };
+
+        LinkTokenRequestBody {
+            client_id: client_id,
+            secret: client_secret,
+            client_name: String::from("Insert Client name here"),
+            country_codes: [String::from("US")],
+            language: String::from("en"),
+            user,
+            products: [String::from("auth")]
+        }
+    }
+}
+
 pub fn load_configuration() -> Configuration {
     let config = read_environment_variables();
 
@@ -78,13 +110,16 @@ pub async fn get_link_token(config: &Configuration) -> LinkToken {
 }
 
 async fn request_link_token(config: &Configuration) -> Result<LinkToken, reqwest::Error> {
+    let client_id = &config.credentials.client_id;
+    let client_secret = &config.credentials.client_secret;
+
     let url = format!("{}/{}", config.environment_url, "link/token/create");
 
     let client = reqwest::Client::new();
 
-    let link_token_request_body = LinkTokenRequestBody::new(&config.credentials.client_id, &config.credentials.client_secret);
+    let link_token_request_body = LinkTokenRequestBody::new(&client_id, &client_secret);
 
-    let resp = client.post(url)
+    let response = client.post(url)
         .json(&link_token_request_body)
         .send()
         .await?
@@ -92,43 +127,11 @@ async fn request_link_token(config: &Configuration) -> Result<LinkToken, reqwest
         .await?;
 
     let link_token = LinkToken {
-        expiration: resp.get("expiration").unwrap().to_string(),
-        link_token: resp.get("link_token").unwrap().to_string(),
-        request_id: resp.get("request_id").unwrap().to_string()
+        expiration: response.get("expiration").unwrap().to_string(),
+        link_token: response.get("link_token").unwrap().to_string(),
+        request_id: response.get("request_id").unwrap().to_string()
     };
     
     Ok(link_token)
 
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct LinkTokenRequestBody<'a> {
-    client_id: &'a str,
-    secret: &'a str,
-    client_name: String,
-    country_codes: [String; 1],
-    language: String,
-    user: LinkTokenUser,
-    products: [String; 1]
-}
-
-impl LinkTokenRequestBody<'_> {
-    fn new<'a>(client_id: &'a str, client_secret: &'a str) -> LinkTokenRequestBody<'a> {
-        LinkTokenRequestBody {
-            client_id: client_id,
-            secret: client_secret,
-            client_name: String::from("Insert Client name here"),
-            country_codes: [String::from("US")],
-            language: String::from("en"),
-            user: LinkTokenUser {
-                client_user_id: String::from("unique_user_id")
-            },
-            products: [String::from("auth")]
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct LinkTokenUser {
-    client_user_id: String
 }
