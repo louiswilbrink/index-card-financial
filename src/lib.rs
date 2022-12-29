@@ -60,3 +60,16 @@ fn read_environment_variables() -> Result<Configuration, VarError> {
         environment_url: var("ENV_URL")?
     })
 }
+
+pub async fn retrieve_transactions(config: &Configuration) -> Vec<Transaction> {
+    let mut transactions: Vec<Transaction> = Vec::new();
+
+    transactions.push(Transaction {
+        transaction_date: String::from("2021-12-02"),
+        amount: 89.4,
+        category: Category::Groceries,
+        vendor: String::from("Whole Foods")
+    });
+
+    transactions
+}
