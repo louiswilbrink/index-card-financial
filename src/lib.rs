@@ -38,6 +38,15 @@ pub enum Category {
     ChildCare
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+struct TransactionRequest<'a> {
+    client_id: &'a str,
+    secret: &'a str,
+    access_token: &'a str,
+    start_date: String,
+    end_date: String
+}
+
 pub fn load_configuration() -> Configuration {
     let config = read_environment_variables();
 
@@ -61,15 +70,42 @@ fn read_environment_variables() -> Result<Configuration, VarError> {
     })
 }
 
-pub async fn retrieve_transactions(config: &Configuration) -> Vec<Transaction> {
+pub async fn get_transactions(config: &Configuration) -> Vec<Transaction> {
     let mut transactions: Vec<Transaction> = Vec::new();
 
-    transactions.push(Transaction {
-        transaction_date: String::from("2021-12-02"),
-        amount: 89.4,
-        category: Category::Groceries,
-        vendor: String::from("Whole Foods")
-    });
+    retrieve_transactions(&config).await;
 
     transactions
+}
+
+pub async fn retrieve_transactions(config: &Configuration) -> Result<Vec<Transaction>, reqwest::Error> {
+    let mut transactions: Vec<Transaction> = Vec::new();
+
+    let url = format!("{}/{}", config.environment_url, "transactions/get");
+
+    println!("url: {}", url);
+
+    let transaction_request_body = TransactionRequest {
+        client_id: &config.credentials.client_id,
+        secret: &config.credentials.client_secret,
+        access_token: &config.credentials.access_token,
+        start_date: String::from("2021-01-01"),
+        end_date: String::from("2021-12-10")
+    };
+
+    let client = reqwest::Client::new();
+
+    let response = client.post(url)
+        .json(&transaction_request_body)
+        .send()
+        .await
+        .unwrap();
+
+    println!("Response: {:?}", response);
+
+    Ok(transactions)
+}
+
+fn print_type_of<T>(_: &T) {
+    println!("{}", std::any::type_name::<T>())
 }

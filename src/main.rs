@@ -4,7 +4,7 @@ use std::error::Error;
 async fn main() -> Result<(), Box<dyn Error>> {
     let config = hypertx::load_configuration();
 
-    let transactions = hypertx::retrieve_transactions(&config).await;
+    let transactions = hypertx::get_transactions(&config).await;
 
     println!("transactions: {:?}", transactions);
 
